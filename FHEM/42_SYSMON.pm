@@ -970,8 +970,8 @@ sub SYSMON_blockingCall($) {
     # Nur wenn ein gueltiges Value vorliegt
     if(defined $value) {
       # Zeichen maskieren
-      $value=~s/#/§²§/g;
-      $value=~s/\|/§³§/g;
+      $value=~s/#/Â§Â²Â§/g;
+      $value=~s/\|/Â§Â³Â§/g;
       $ret.="|".$aName."|".$value;
     }
   }
@@ -1002,7 +1002,7 @@ sub SYSMON_test() {
     my $value = $map->{$aName};
     # Nur wenn ein gueltiges Value vorliegt
     if(defined $value) {
-      $value=~s/#/§²§/g;
+      $value=~s/#/Â§Â²Â§/g;
       $ret.="|".$aName."|".$value;
     }
   }
@@ -1078,8 +1078,8 @@ sub SYSMON_updateReadings($$) {
     # Nur aktualisieren, wenn ein gueltiges Value vorliegt
     if(defined $value) {
       # Maskierte Zeichen zuruechersetzen
-      $value=~s/§²§/#/g;
-      $value=~s/§³§/\|/g;
+      $value=~s/Â§Â²Â§/#/g;
+      $value=~s/Â§Â³Â§/\|/g;
       readingsBulkUpdate($hash,$aName,$value);
     }
   }
@@ -2263,7 +2263,10 @@ sub SYSMON_getRamAndSwap($$) {
   if($hash->{helper}->{excludes}{'ramswap'}) {return $map;}
 
   #my @speicher = qx(free -m);
-  my @speicher = SYSMON_execute($hash, "LANG=en free");
+  my $free_version = SYSMON_execute($hash, 'free -V');
+  $free_version =~ s/\D//g;
+  my @speicher = SYSMON_execute($hash, 'LANG=en ' . ($free_version > 339 ? 'free -w' : 'free'));
+  #my @speicher = SYSMON_execute($hash, "LANG=en free");
 
   if(!@speicher) {
     return $map;
@@ -2312,7 +2315,8 @@ sub SYSMON_getRamAndSwap($$) {
     }
     #$used_clean = $used - $buffers - $cached;
     #$ram = sprintf("Total: %.2f MB, Used: %.2f MB, %.2f %%, Free: %.2f MB", $total, $used_clean, ($used_clean / $total * 100), ($free + $buffers + $cached));
-    if ($total > 2048) {
+#    if ($total > 2048) {
+     if ($free_version > 339) {
        $used_clean = $used;
        $ram = sprintf("Total: %.2f MB, Used: %.2f MB, %.2f %%, Free: %.2f MB", $total, $used_clean, ($used_clean / $total * 100), ($free));
      } else {
@@ -2710,12 +2714,12 @@ sub SYSMON_getNetworkInfo ($$$) {
     @dataThroughput = (
     "eth0      Link encap:Ethernet  Hardware Adresse b8:27:eb:47:a9:8d",
     "          inet Adresse:192.168.2.118  Bcast:192.168.2.255  Maske:255.255.255.0",
-    "          inet6-Adresse: 2003:46:b6b:3100:ba27:ebff:fe47:a98d/64 Gültigkeitsbereich:Global",
-    "          inet6-Adresse: fe80::ba27:ebff:fe47:a98d/64 Gültigkeitsbereich:Verbindung",
+    "          inet6-Adresse: 2003:46:b6b:3100:ba27:ebff:fe47:a98d/64 GÃ¼ltigkeitsbereich:Global",
+    "          inet6-Adresse: fe80::ba27:ebff:fe47:a98d/64 GÃ¼ltigkeitsbereich:Verbindung",
     "          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metrik:1",
     "          RX packets:1224709 errors:0 dropped:0 overruns:0 frame:0",
     "          TX packets:1156620 errors:0 dropped:0 overruns:0 carrier:0",
-    "          Kollisionen:0 Sendewarteschlangenlänge:1000",
+    "          Kollisionen:0 SendewarteschlangenlÃ¤nge:1000",
     "          RX bytes:180806073 (172.4 MiB)  TX bytes:108919337 (103.8 MiB)");
   }
   #--- DEBUG ---
@@ -3233,7 +3237,7 @@ sub SYSMON_getFBCRCFEC($$) {
 # Systemparameter als HTML-Tabelle ausgeben
 # Parameter: Name des SYSMON-Geraetes (muss existieren, kann auch anderer Modul genutzt werden), dessen Daten zur Anzeige gebracht werden sollen.
 # (optional) Liste der anzuzeigenden Werte (ReadingName[:Comment:[Postfix[:FormatString]]],...)
-# Beispiel: define sysv weblink htmlCode {SYSMON_ShowValuesHTML('sysmon', ('date:Datum', 'cpu_temp:CPU Temperatur: °C', 'cpu_freq:CPU Frequenz: MHz'))}
+# Beispiel: define sysv weblink htmlCode {SYSMON_ShowValuesHTML('sysmon', ('date:Datum', 'cpu_temp:CPU Temperatur: Â°C', 'cpu_freq:CPU Frequenz: MHz'))}
 #------------------------------------------------------------------------------
 sub SYSMON_ShowValuesHTML ($;@)
 {
@@ -3246,7 +3250,7 @@ sub SYSMON_ShowValuesHTML ($;@)
 # Parameter: Name des SYSMON-Geraetes (muss existieren, kann auch anderer Modul genutzt werden), dessen Daten zur Anzeige gebracht werden sollen.
 # Title: Ueberschrift (Text)
 # (optional) Liste der anzuzeigenden Werte (ReadingName[:Comment:[Postfix[:FormatString]]],...)
-# Beispiel: define sysv weblink htmlCode {SYSMON_ShowValuesHTML('sysmon', ('date:Datum', 'cpu_temp:CPU Temperatur: °C', 'cpu_freq:CPU Frequenz: MHz'))}
+# Beispiel: define sysv weblink htmlCode {SYSMON_ShowValuesHTML('sysmon', ('date:Datum', 'cpu_temp:CPU Temperatur: Â°C', 'cpu_freq:CPU Frequenz: MHz'))}
 #------------------------------------------------------------------------------
 sub SYSMON_ShowValuesHTMLTitled ($;$@)
 {
@@ -3260,7 +3264,7 @@ sub SYSMON_ShowValuesHTMLTitled ($;$@)
 # Systemparameter im Textformat ausgeben
 # Parameter: Name des SYSMON-Geraetes (muss existieren, kann auch anderer Modul genutzt werden), dessen Daten zur Anzeige gebracht werden sollen.
 # (optional) Liste der anzuzeigenden Werte (ReadingName[:Comment:[Postfix[:FormatString]]],...)
-# Beispiel: define sysv weblink htmlCode {SYSMON_ShowValuesText('sysmon', ('date:Datum', 'cpu_temp:CPU Temperatur: °C', 'cpu_freq:CPU Frequenz: MHz'))}
+# Beispiel: define sysv weblink htmlCode {SYSMON_ShowValuesText('sysmon', ('date:Datum', 'cpu_temp:CPU Temperatur: Â°C', 'cpu_freq:CPU Frequenz: MHz'))}
 #------------------------------------------------------------------------------
 sub SYSMON_ShowValuesText ($;@)
 {
@@ -3273,7 +3277,7 @@ sub SYSMON_ShowValuesText ($;@)
 # Parameter: Name des SYSMON-Geraetes (muss existieren, kann auch anderer Modul genutzt werden), dessen Daten zur Anzeige gebracht werden sollen.
 # Title: Ueberschrift (Text)
 # (optional) Liste der anzuzeigenden Werte (ReadingName[:Comment:[Postfix[:FormatString]]],...)
-# Beispiel: define sysv weblink htmlCode {SYSMON_ShowValuesText('sysmon', ('date:Datum', 'cpu_temp:CPU Temperatur: °C', 'cpu_freq:CPU Frequenz: MHz'))}
+# Beispiel: define sysv weblink htmlCode {SYSMON_ShowValuesText('sysmon', ('date:Datum', 'cpu_temp:CPU Temperatur: Â°C', 'cpu_freq:CPU Frequenz: MHz'))}
 #------------------------------------------------------------------------------
 sub SYSMON_ShowValuesTextTitled ($;$@)
 {
@@ -3309,7 +3313,7 @@ sub SYSMON_ShowValuesFmt ($$$;@)
   my @dataDescription = @data;
   if(scalar(@data)<=0) {
     # Array mit anzuzeigenden Parametern (Prefix, Name (in Map), Postfix)
-    my $deg = "°";
+    my $deg = "Â°";
     if($format == 1) {
       $deg = "&deg;";
     }
@@ -3716,7 +3720,7 @@ sub SYSMON_PowerBatInfo($$) {
   $map->{"power_".$type."_text"}=$type.": ".(($d_present eq "1") ? "present" : "absent")." / ".($d_online eq "1" ? "online" : "offline").", voltage: ".$d_voltage." V, current: ".$d_current." mA, ".(int(($d_voltage*$d_current/100+0.5))/10)." W, "."capacity: ".$d_capacity." %";
   
   if($d_present eq "1") {
-    # Zusaetzlich: technology, capacity, status, health, temp (/10 => °C)
+    # Zusaetzlich: technology, capacity, status, health, temp (/10 => Â°C)
     my $d_technology = trim(SYSMON_execute($hash, $base."technology 2>/dev/null"));
     my $d_status = trim(SYSMON_execute($hash, $base."status 2>/dev/null"));
     my $d_health = trim(SYSMON_execute($hash, $base."health 2>/dev/null"));
@@ -4885,7 +4889,7 @@ sub SYSMON_Log($$$) {
    <br>
    Bei SSH-Anmeldung mit Passwort muss 'sshpass' installiert sein (Achtung! Sicherheitstechnisch nicht empfehlenswert! Besser Public-Key-Verfahren benutzen).
    Damit SSH-Anmeldung funktioniert, muss ggf. einmalig eine manuelle SSH-Verbindung an die Remote-Machine von dem FHEM-Acount 
-   (unter dessen Rechten FHEM läuft) durchgef&uuml;hrt und fingerprint best&auml;tigt werden.
+   (unter dessen Rechten FHEM lÃ¤uft) durchgef&uuml;hrt und fingerprint best&auml;tigt werden.
    <br>
    <br>
    <b>Readings:</b>
@@ -5234,7 +5238,7 @@ sub SYSMON_Log($$$) {
       <br>
       <li>exclude<br>
          Erlaubt das Abfragen bestimmten Informationen zu unterbinden. <br>
-         Mögliche Werte: user-defined (s. user-defined und user-fn), cpucount, uptime, fhemuptime,
+         MÃ¶gliche Werte: user-defined (s. user-defined und user-fn), cpucount, uptime, fhemuptime,
          loadavg, cputemp, cpufreq, cpuinfo, diskstat, cpustat, ramswap, filesystem, network,
          fbwlan, fbnightctrl, fbnewmessages, fbdecttemp, fbversion, fbdsl, powerinfo
       </li>
